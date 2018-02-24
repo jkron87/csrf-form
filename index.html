@@ -1,0 +1,254 @@
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Form Bust</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" >
+        <style>
+
+            .bd-clipboard {
+                position: relative;
+                display: none;
+                float: right;
+            }
+
+            .bd-clipboard + .highlight {
+                margin-top: 0;
+            }
+
+            .btn-clipboard {
+                color: green;
+                cursor: pointer;
+                background-color: transparent;
+                border: 0;
+                border-radius: .25rem;
+                padding: 0px;
+            }
+
+            .btn-clipboard:hover {
+                opacity: .75;
+            }
+
+            @media (min-width: 768px) {
+                .bd-clipboard {
+                    display: block;
+                }
+            }
+        </style>
+    </head>
+    <body class="bg-light" onload="startUp()">
+
+        <div class="container">
+            <div class="py-5 text-center">
+                <h2>CSRF form</h2>
+                <p class="lead">
+                    This tool can be used to easily build a web form with form data copied from browser tab and test cross site request forgery issue of any given url.
+                </p>
+            </div>
+            <div class="row">
+                <div id="divSubmit" class="col-md-12 order-md-2 mb-4" style="display: none">
+                    <h4 class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">CSRF Form</span>
+                        <span id="spCount" class="badge badge-secondary badge-pill">0</span>
+                    </h4>
+                    <form class="card p-2" id="frm">
+                        <ul class="list-group mb-3" id="table">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Empty</span>
+                                <strong>--</strong>
+                            </li>
+                        </ul>
+                        <div class="input-group">
+                            <div id="divInputs"></div>
+                            <button type="submit" class="btn btn-primary btn-lg btn-block">Submit Form</button>
+                            <button type="button" onclick="cancelForm()" class="btn btn-info btn-lg btn-block">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+                <div id="divAlert" class="col-md-12 order-md-1" style="display: none">
+                    <div class="alert alert-danger" role="alert" id="alertValidation">
+
+                    </div>
+                </div>
+                <div id="divBuild" class="col-md-12 order-md-1">
+                    <h4 class="mb-3">Build Form</h4>
+                    <div class="row">
+                        <div class="col-md-9 mb-3">
+                            <label for="txtAction">Action</label>
+                            <input type="text" class="form-control" id="txtAction" placeholder="http://bad.com/command" value="" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="txtMethod">Method</label>
+                            <input type="text" class="form-control" id="txtMethod" placeholder="GET | POST | PUT | DELETE" value="" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="username">Username</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Form</span>
+                            </div>
+                            <textarea class="form-control" id="txtBody" placeholder="key:value" style="height: 150px"></textarea>
+                        </div>
+                    </div>
+
+                    <hr class="mb-4">
+                    <button class="btn  btn-success btn-lg btn-block" onclick="buildForm()">Build Form</button>
+
+                </div>
+            </div>
+            <div class="row featurette">
+                <div class="col-md-12 mt-5 pt-5" style="border-top:1px dashed #DDD">
+                    <h2 class="featurette-heading"><span class="text-muted">Sharing </span> from with loaded content.</h2>
+                    <p class="lead mb-0">CSRF From allows you to share predefined content by simply fill the content and click 
+                        <button id="copyTooltip" onclick="copyForSharing()" class="btn-clipboard" data-toggle="tooltip" data-placement="top" title="Copy link to clipboard" data-original-title="Copy link to clipboard">here</button>.</p>
+                </div>
+            </div>
+            <footer class="container my-5 pt-5 mb-1" style="border-top:1px dashed #DDD">
+                <p class="float-right"><a href="#">Back to top</a></p>
+                <p>© 2018-2019 KVLabs. · <a href="#">Privacy</a> · <a href="#">Terms</a></p>
+            </footer>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" ></script>
+        <script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
+        <script src="https://cdn.jsdelivr.net/npm/docsearch.js@2/dist/cdn/docsearch.min.js"></script>
+        <script src="https://getbootstrap.com/assets/js/vendor/popper.min.js"></script>
+        <script src="https://getbootstrap.com/dist/js/bootstrap.min.js" ></script>
+        <script src="https://getbootstrap.com/assets/js/docs.min.js"></script>
+        <script type="text/javascript">
+                            /**
+                             * Application startup
+                             * @returns {undefined}
+                             */
+                            function startUp() {
+                                var action, method, body;
+                                if (typeof (Storage) !== "undefined") {
+                                    action = (localStorage.getItem("form-action"));
+                                    method = (localStorage.getItem("form-method"));
+                                    body = (localStorage.getItem("form-body"));
+                                } else {
+                                    console.log('Sorry! No Web Storage support..');
+                                }
+                                //
+                                //set values
+                                var temp = getParameterByName('action');
+                                $('#txtAction').val((temp !== null) ? temp : action);
+                                temp = getParameterByName('method');
+                                $('#txtMethod').val((temp !== null) ? temp : method);
+                                temp = getParameterByName('body');
+                                $('#txtBody').val((temp !== null) ? temp : body);
+                                //toot tips
+                                $(function () {
+                                    $('[data-toggle="tooltip"]').tooltip()
+                                });
+                            }
+                            /**
+                             * Cancel submition form
+                             * @returns {undefined}
+                             */
+                            function cancelForm() {
+                                $('#divSubmit').hide();
+                                $('#divBuild').show();
+                                $('#spCount').html(0);
+                                $('#table').html('');
+                                $('#divInputs').html('');
+                            }
+                            /**
+                             * Builds Submition form
+                             * @returns {undefined}
+                             */
+                            function buildForm() {
+                                if ($('#txtAction').val().length === 0) {
+                                    $('#alertValidation').html('Valid form action is required.');
+                                    $('#divAlert').show();
+                                    return;
+                                } else if ((!$('#txtAction').val().startsWith("http://")) && (!$('#txtAction').val().startsWith("https://"))) {
+                                    $('#alertValidation').html('please provide valid form action url.');
+                                    $('#divAlert').show();
+                                    return;
+                                }
+                                if ($('#txtMethod').val().length === 0) {
+                                    $('#alertValidation').html('Valid form method is required.');
+                                    $('#divAlert').show();
+                                    return;
+                                }
+                                $('#divAlert').hide();
+                                //
+                                $('#table').html('');
+                                $('#divInputs').html('');
+                                //
+                                $('#frm').attr("action", $('#txtAction').val());
+                                $('#frm').attr("method", $('#txtMethod').val());
+                                var formBody = $('#txtBody').val();
+                                var formLine = formBody.split("\n");
+                                var lineSplit;
+                                var count = 0;
+                                $('#table').append('<li class="list-group-item d-flex justify-content-between bg-light"><div class="text-success"><h6 class="my-0">' + $('#txtMethod').val() + '</h6>\n\
+        <small>' + $('#txtAction').val() + '</small></div></li>');
+                                if ((formBody.length > 0) && (formLine.length > 0)) {
+                                    $.each(formLine, function (index, line) {
+                                        lineSplit = line.split(":");
+                                        if (lineSplit.length === 1) {
+                                            $('#table').append('<li class="list-group-item d-flex justify-content-between lh-condensed"> <div><h6 class="my-0">' + lineSplit[0] + '</h6><small class="text-muted">--</small></div><span class="text-muted">flag</span></li>');
+                                            $('#divInputs').append('<input type="hidden"  value="' + lineSplit[0] + '">');
+                                        } else if (lineSplit.length === 2) {
+                                            $('#table').append('<li class="list-group-item d-flex justify-content-between lh-condensed"> <div><h6 class="my-0">' + lineSplit[0] + '</h6><small class="text-muted">' + lineSplit[1] + '</small></div></li>');
+                                            $('#divInputs').append('<input type="hidden"  value="' + lineSplit[0] + '" name="' + lineSplit[0] + '">');
+                                        }
+                                        ++count;
+                                    });
+                                }
+                                $('#spCount').html(count);
+                                $('#divBuild').hide();
+                                $('#divSubmit').show();
+                                //set local storage
+                                localStorage.setItem("form-action", $('#txtAction').val());
+                                localStorage.setItem("form-method", $('#txtMethod').val());
+                                localStorage.setItem("form-body", $('#txtBody').val());
+                            }
+
+                            /**
+                             * Fetch Value for the given parameter
+                             * @param {type} queryString
+                             * @returns {String}
+                             */
+                            function getParameterByName(queryString) {
+                                var url = window.location.href;
+                                var name = queryString.replace(/[\[\]]/g, "\\$&");
+                                var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"), results = regex.exec(url);
+                                if (!results)
+                                    return null;
+                                if (!results[2])
+                                    return null;
+                                return decodeURIComponent(results[2].replace(/\+/g, " "));
+                            }
+                            /**
+                             * 
+                             * @returns {undefined}
+                             */
+                            function copyForSharing() {
+                                var url = "https://kvlabs.github.io";
+                                url += ("?action=" + encodeURI($('#txtAction').val()));
+                                url += ("&method=" + $('#txtMethod').val());
+                                url += ("&body=" + encodeURI($('#txtBody').val()));
+                                var $temp = $("<input>");
+                                $("body").append($temp);
+                                $temp.val(url);
+                                $temp.select();
+                                document.execCommand("copy");
+                                $temp.remove();
+                                $('#copyTooltip').attr('title', 'Copied!')
+                                        .tooltip('_fixTitle')
+                                        .tooltip('show')
+                                        .attr('title', 'Copy link to clipboard')
+                                        .tooltip('_fixTitle');
+                                $('#copyTooltip').tooltip('update');
+                            }
+        </script>
+    </body>
+</html>
