@@ -197,10 +197,10 @@
                                         lineSplit = line.split(":");
                                         if (lineSplit.length === 1) {
                                             $('#table').append('<li class="list-group-item d-flex justify-content-between lh-condensed"> <div><h6 class="my-0">' + lineSplit[0] + '</h6><small class="text-muted">--</small></div><span class="text-muted">flag</span></li>');
-                                            $('#divInputs').append('<input type="hidden"  value="' + lineSplit[0] + '">');
+                                            $('#divInputs').append('<input type="hidden"  name="' + lineSplit[0] + '">');
                                         } else if (lineSplit.length === 2) {
                                             $('#table').append('<li class="list-group-item d-flex justify-content-between lh-condensed"> <div><h6 class="my-0">' + lineSplit[0] + '</h6><small class="text-muted">' + lineSplit[1] + '</small></div></li>');
-                                            $('#divInputs').append('<input type="hidden"  value="' + lineSplit[0] + '" name="' + lineSplit[0] + '">');
+                                            $('#divInputs').append('<input type="hidden"  name="' + lineSplit[0] + '" value="' + lineSplit[1] + '">');
                                         }
                                         ++count;
                                     });
